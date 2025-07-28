@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Fine Counter</title>
+    <style>
+        /* CSS styles remain the same for appearance */
+        :root {
+            --primary-color: #007bff;
+            --background-color: #f4f4f9;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+        .container {
+            background: var(--card-bg);
+            padding: 2rem 3rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            max-width: 400px;
+            width: 90%;
+        }
+        h1 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        p {
+            font-size: 1.2rem;
+            margin-top: 0;
+        }
+        #fine-display {
+            font-size: 6rem;
+            font-weight: bold;
+            color: #d9534f;
+            margin: 1rem 0;
+            line-height: 1;
+        }
+        .hidden {
+            display: none;
+        }
+        #login-section input {
+            padding: 10px;
+            width: calc(100% - 22px);
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #increment-btn {
+            background-color: #5cb85c;
+        }
+        #increment-btn:hover {
+            background-color: #4cae4c;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>The Fine Counter 💸</h1>
+        <p>Current Fine Count:</p>
+        <div id="fine-display">
+            <span id="fine-count">0</span>
+        </div>
+
+        <div id="login-section">
+            <input type="password" id="password-input" placeholder="Enter Admin Password">
+            <button id="login-btn">Login to Admin Mode</button>
+        </div>
+
+        <div id="admin-section" class="hidden">
+            <p><strong>Admin Mode Active ✅</strong></p>
+            <button id="increment-btn">Add 1 Fine</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import functions from the Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+
+        // Your web app's Firebase configuration (pasted from your prompt)
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7VRRQ2eYNX36_e1xKkkrPC9zHFHIYQvs",
+            authDomain: "whatapp-chats.firebaseapp.com",
+            databaseURL: "https://whatapp-chats-default-rtdb.firebaseio.com",
+            projectId: "whatapp-chats",
+            storageBucket: "whatapp-chats.appspot.com",
+            messagingSenderId: "972527506343",
+            appId: "1:972527506343:web:3ede5d565179138db35c82",
+            measurementId: "G-4GXF2EWGH6"
+        };
+        
+        // STEP 1: Set your desired password here
+        const ADMIN_PASSWORD = "your_secret_password"; // <-- CHANGE THIS!
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const fineCountRef = ref(database, 'fines/count');
+
+        // Get DOM elements
+        const fineCountElement = document.getElementById('fine-count');
+        const loginSection = document.getElementById('login-section');
+        const adminSection = document.getElementById('admin-section');
+        const loginBtn = document.getElementById('login-btn');
+        const passwordInput = document.getElementById('password-input');
+        const incrementBtn = document.getElementById('increment-btn');
+        
+        // --- Event Listeners ---
+
+        // Listen for login button click
+        loginBtn.addEventListener('click', () => {
+            if (passwordInput.value === ADMIN_PASSWORD) {
+                loginSection.classList.add('hidden');
+                adminSection.classList.remove('hidden');
+                passwordInput.value = ''; // Clear password field
+            } else {
+                alert('Incorrect Password!');
+            }
+        });
+
+        // Listen for increment button click
+        incrementBtn.addEventListener('click', () => {
+            // Use a transaction to safely increment the count
+            runTransaction(fineCountRef, (currentCount) => {
+                return (currentCount || 0) + 1;
+            });
+        });
+
+        // --- Firebase Real-time Listener ---
+
+        // Listen for changes in the 'count' value in the database
+        onValue(fineCountRef, (snapshot) => {
+            const count = snapshot.val() || 0;
+            fineCountElement.textContent = count;
+        });
+
+    </script>
+</body>
+</html>
